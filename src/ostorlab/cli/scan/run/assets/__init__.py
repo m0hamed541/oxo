@@ -25,6 +25,7 @@ from ostorlab.cli.scan.run.assets import (
     repository_archive,
     risk,
     ticket,
+    v4_asset,
 )
 
 __all__ = (
@@ -52,4 +53,5 @@ __all__ = (
     "repository_archive",
     "risk",
     "ticket",
+    "v4_asset",
 )

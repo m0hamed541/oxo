@@ -225,6 +225,23 @@ class AgentRuntime:
         agent_definition = self._docker_client.images.get(
             self.agent.container_image
         ).labels.get("agent_definition")
+        if "inject_asset" in self.agent.container_image and agent_definition:
+            try:
+                import ruamel.yaml
+
+                ryaml = ruamel.yaml.YAML()
+                def_dict = ryaml.load(agent_definition)
+                if (
+                    isinstance(def_dict, dict)
+                    and "out_selectors" in def_dict
+                    and "v4" not in def_dict["out_selectors"]
+                ):
+                    def_dict["out_selectors"].append("v4")
+                    buf = io.StringIO()
+                    ryaml.dump(def_dict, buf)
+                    agent_definition = buf.getvalue()
+            except ruamel.yaml.YAMLError as e:
+                logger.warning("Could not patch inject_asset out_selectors: %s", e)
         # The name is hashed to work around size limitation of Docker Config.
         config_name = hashlib.md5(
             f"config_definition_{self.image_name}__{self.runtime_name}_{self._uuid}".encode()
