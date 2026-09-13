@@ -28,7 +28,7 @@ from ostorlab.cli import (
     install_agent,
 )
 from ostorlab.cli import console as cli_console
-from ostorlab.runtimes import definitions, docker_cleanup, runtime
+from ostorlab.runtimes import bios, definitions, docker_cleanup, runtime
 from ostorlab.runtimes.local import agent_runtime, log_streamer
 from ostorlab.runtimes.local.models import models
 from ostorlab.runtimes.local.services import jaeger, mq, redis
@@ -225,6 +225,12 @@ class LocalRuntime(runtime.Runtime):
         Returns:
             The scan object.
         """
+        logger.info("Running pre-scan verification")
+        scan_bios = bios.ScanBios(
+            agent_group_definition=agent_group_definition,
+            assets=assets,
+        )
+        scan_bios.check()
         self._log_streamer = log_streamer.LogStream(self._docker_client)
         try:
             if self._scan_db is None:

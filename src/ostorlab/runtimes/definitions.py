@@ -147,6 +147,8 @@ class AgentSettings:
     depth_processing_limit: int | None = None
     accepted_agents: list[str] | None = None
     in_selectors: list[str] | None = dataclasses.field(default_factory=list)
+    out_selectors: list[str] | None = dataclasses.field(default_factory=list)
+    asset_schemas: dict[str, dict[str, Any]] = dataclasses.field(default_factory=dict)
     service_name: str | None = None
 
     @property
@@ -319,6 +321,8 @@ class AgentGroupDefinition:
                 depth_processing_limit=agent.get("depth_processing_limit"),
                 accepted_agents=agent.get("accepted_agents"),
                 in_selectors=agent.get("in_selectors", []),
+                out_selectors=agent.get("out_selectors", []),
+                asset_schemas=agent.get("asset_schemas", {}),
                 service_name=agent.get("service_name"),
             )
 
@@ -384,6 +388,8 @@ class AgentGroupDefinition:
                     cyclic_processing_limit=agent.get("cyclicProcessingLimit"),
                     depth_processing_limit=agent.get("depthProcessingLimit"),
                     in_selectors=agent.get("inSelectors") or [],
+                    out_selectors=agent.get("outSelectors") or [],
+                    asset_schemas=agent.get("assetSchemas") or {},
                     open_ports=port_mappings,
                     service_name=agent.get("serviceName"),
                 )

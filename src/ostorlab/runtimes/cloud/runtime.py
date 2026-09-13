@@ -32,7 +32,7 @@ from ostorlab.assets import asset as base_asset
 from ostorlab.assets import link
 from ostorlab.cli import console as cli_console
 from ostorlab.cli import dumpers
-from ostorlab.runtimes import definitions, runtime
+from ostorlab.runtimes import bios, definitions, runtime
 from ostorlab.utils import styles
 
 logger = logging.getLogger(__name__)
@@ -91,6 +91,12 @@ class CloudRuntime(runtime.Runtime):
         Returns:
             None
         """
+        logger.info("Running pre-scan verification")
+        scan_bios = bios.ScanBios(
+            agent_group_definition=agent_group_definition,
+            assets=assets,
+        )
+        scan_bios.check()
         try:
             # Support multiple link assets for local runtime for the cloud runtime.
             if all(isinstance(a, link.Link) for a in assets) is True:

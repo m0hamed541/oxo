@@ -16,7 +16,7 @@ from ostorlab import exceptions
 from ostorlab.assets import asset as base_asset
 from ostorlab.cli import console as cli_console
 from ostorlab.cli import docker_requirements_checker, dumpers, install_agent
-from ostorlab.runtimes import definitions, docker_cleanup, runtime
+from ostorlab.runtimes import bios, definitions, docker_cleanup, runtime
 from ostorlab.runtimes.lite_local import agent_runtime
 from ostorlab.runtimes.local.models import models
 from ostorlab.utils import volumes
@@ -199,6 +199,12 @@ class LiteLocalRuntime(runtime.Runtime):
         Returns:
             None
         """
+        logger.info("Running pre-scan verification")
+        scan_bios = bios.ScanBios(
+            agent_group_definition=agent_group_definition,
+            assets=assets,
+        )
+        scan_bios.check()
         try:
             console.info("Starting agents")
             self._start_agents(agent_group_definition)
