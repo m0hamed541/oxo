@@ -2,6 +2,7 @@
 
 import dataclasses
 import importlib
+import json
 import logging
 import os
 import pathlib
@@ -96,8 +97,16 @@ def _selector_to_package_regex(subject: str) -> str:
         )
 
 
+V4_ASSET_PREFIX = "v4.asset."
+
+
+def is_v4_asset(selector: str) -> bool:
+    """Checks whether the selector belongs to the v4.asset family."""
+    return selector.startswith(V4_ASSET_PREFIX)
+
+
 def serialize(selector: str, values: dict[str, Any]) -> Any:
-    """Serializes a Request message using the proper format defined using the seelctor value.
+    """Serializes a Request message using the proper format defined using the selector value.
     If the subject is a.b.c. The corresponding proto is located at message/a/b/c/xxx.proto.
 
     Args:
@@ -107,10 +116,26 @@ def serialize(selector: str, values: dict[str, Any]) -> Any:
     Returns:
         Proto serialized message.
     """
+    if is_v4_asset(selector):
+        return _serialize_v4(selector, values)
     try:
         return _serialize(selector, PROTO_CLASS_NAME, values)
     except json_format.Error as e:
         raise SerializationError("Error serializing message") from e
+
+
+def _serialize_v4(selector: str, values: dict[str, Any]) -> Any:
+    """Serializes v4 asset into the universal v4.asset.Message envelope."""
+    from ostorlab.agent.message.proto.v4.asset import asset_pb2
+
+    proto_message = asset_pb2.Message()
+    proto_message.selector = selector
+    proto_message.schema_version = str(values.get("_schema_version", "1.0.0"))
+    proto_message.content_type = str(values.get("_content_type", "application/json"))
+
+    clean_values = {k: v for k, v in values.items() if not k.startswith("_")}
+    proto_message.payload = json.dumps(clean_values).encode("utf-8")
+    return proto_message
 
 
 def _serialize(selector: str, class_name: str, values: dict[str, Any]) -> Any:
@@ -190,7 +215,18 @@ def deserialize(selector: str, serialized: bytes) -> Any:
     Returns:
         Dict
     """
+    if is_v4_asset(selector):
+        return _deserialize_v4(serialized)
     return _deserialize(selector, PROTO_CLASS_NAME, serialized)
+
+
+def _deserialize_v4(serialized: bytes) -> Any:
+    """Deserializes universal v4 asset envelope."""
+    from ostorlab.agent.message.proto.v4.asset import asset_pb2
+
+    proto_message = asset_pb2.Message()
+    proto_message.ParseFromString(serialized)
+    return proto_message
 
 
 def _deserialize(selector: str, class_name: str, serialized: bytes) -> Any:
