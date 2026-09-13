@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package ostorlab.agent.message.proto.v4.asset;
+
+message Message {
+  string selector = 1;
+  string schema_version = 2;
+  bytes payload = 3;
+  string content_type = 4;
+  map<string, string> metadata = 5;
+}

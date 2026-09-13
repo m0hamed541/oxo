@@ -66,5 +66,10 @@ class Message:
             Message with both raw and data definitions.
         """
         proto_message = serializer.deserialize(selector, raw)
-        data = proto_dict.protobuf_to_dict(proto_message, use_enum_labels=True)
+        if serializer.is_v4_asset(selector):
+            import json
+
+            data = json.loads(proto_message.payload.decode("utf-8"))
+        else:
+            data = proto_dict.protobuf_to_dict(proto_message, use_enum_labels=True)
         return cls(data=data, selector=selector, raw=raw)
